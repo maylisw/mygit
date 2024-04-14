@@ -94,7 +94,11 @@ impl Object for Tree {
         let mut content: Vec<u8> = vec![];
         for e in &self.entries {
             let hex_oid = hex::decode(&e.oid).unwrap();
-            content.extend(format!("{} {:?}\0", e.mode, e.path).as_bytes().to_vec());
+            content.extend(
+                format!("{} {}\0", e.mode, e.path.to_str().unwrap())
+                    .as_bytes()
+                    .to_vec(),
+            );
             content.extend(hex_oid);
         }
         return content;

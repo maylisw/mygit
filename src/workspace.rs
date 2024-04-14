@@ -12,8 +12,8 @@ pub struct Workspace {
 
 impl Workspace {
     pub fn new(path: PathBuf) -> Self {
-        let mut ignores = vec![path.join(".git")];
-        let gitignores = match read_gitignore(&path) {
+        let mut ignores = vec![PathBuf::from(".git")];
+        let gitignores = match read_gitignore(&path.join(".gitignore")) {
             Ok(data) => data,
             Err(e) => {
                 eprintln!("error reading .gitignore {e}");
@@ -38,7 +38,7 @@ impl Workspace {
 
         for e in entries {
             let entry = e?;
-            let path = entry.path();
+            let path = PathBuf::from(entry.path().strip_prefix(root_path)?);
             if self.ignores.contains(&path) {
                 continue;
             } else if path.is_dir() {
@@ -54,8 +54,7 @@ impl Workspace {
     }
 }
 
-fn read_gitignore(root: &PathBuf) -> Result<Vec<PathBuf>> {
-    let gitignore = root.join(".gitignore");
+fn read_gitignore(gitignore: &PathBuf) -> Result<Vec<PathBuf>> {
     let mut paths = vec![];
 
     if Path::exists(&gitignore) {
@@ -64,7 +63,7 @@ fn read_gitignore(root: &PathBuf) -> Result<Vec<PathBuf>> {
 
         for line in reader.lines() {
             let raw_line = line?;
-            paths.push(root.join(raw_line));
+            paths.push(PathBuf::from(raw_line));
         }
     }
 
