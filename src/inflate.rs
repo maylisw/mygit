@@ -6,7 +6,7 @@ fn main() -> Result<()> {
     let mut input = vec![];
     stdin().read_to_end(&mut input)?;
 
-    let data = match inflate::decompress_to_vec(&input) {
+    let data = match inflate::decompress_to_vec_zlib(&input) {
         Ok(data) => data,
         Err(err) => return Err(anyhow!("inflate: {}", err)),
     };

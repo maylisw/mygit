@@ -1,7 +1,7 @@
 use super::Object;
 
 use anyhow::{Context, Result};
-use miniz_oxide::deflate;
+use miniz_oxide::deflate::{self, CompressionLevel};
 use rand::{distributions::Alphanumeric, Rng};
 use sha1::{Digest, Sha1};
 use std::{
@@ -45,7 +45,7 @@ impl Database {
             .create_new(true)
             .open(&temp_path)?;
 
-        let compressed = deflate::compress_to_vec(data, 1);
+        let compressed = deflate::compress_to_vec_zlib(data, CompressionLevel::BestSpeed as u8);
         temp_file.write_all(&compressed)?;
 
         fs::rename(temp_path, object_path)?;
