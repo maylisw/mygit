@@ -118,6 +118,7 @@ impl Object for Tree {
 }
 
 pub struct Commit<'a> {
+    parent_oid: &'a String,
     tree_oid: &'a String,
     author: Author,
     message: String,
@@ -126,10 +127,13 @@ pub struct Commit<'a> {
 }
 
 impl<'a> Object for Commit<'a> {
-    type Input = (&'a String, Author, String);
+    type Input = (&'a String, &'a String, Author, String);
 
-    fn new((tree_oid, author, message): (&String, Author, String)) -> Commit {
+    fn new(
+        (parent_oid, tree_oid, author, message): (&'a String, &'a String, Author, String),
+    ) -> Commit {
         return Commit {
+            parent_oid,
             tree_oid,
             author,
             message,
@@ -139,10 +143,14 @@ impl<'a> Object for Commit<'a> {
     }
 
     fn bytes(&self) -> Vec<u8> {
-        let commit = format!(
-            "tree {}\nauthor {}\ncommitter {}\n\n{}",
-            self.tree_oid, self.author, self.author, self.message
-        );
+        let mut commit: String = format!("tree {}\n", self.tree_oid);
+        if !self.parent_oid.is_empty() {
+            commit += &format!("parent {}\n", self.parent_oid);
+        }
+        commit += &format!("author {}\n", self.author);
+        commit += &format!("committer {}\n", self.author);
+        commit += &"\n";
+        commit += &self.message;
 
         return commit.as_bytes().to_vec();
     }

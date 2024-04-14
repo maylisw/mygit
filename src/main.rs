@@ -1,15 +1,17 @@
 mod database;
 pub mod object;
+mod refs;
 mod workspace;
 
 use database::Database;
 use object::{Author, Blob, Commit, Entry, Object, Tree};
+use refs::Refs;
 use workspace::Workspace;
 
 use anyhow::{anyhow, Context, Result};
 use std::{
     env, fs,
-    io::{stdin, BufRead, BufReader, Write},
+    io::{stdin, BufRead, BufReader},
     path::PathBuf,
 };
 
@@ -47,10 +49,11 @@ fn init() -> Result<()> {
 fn commit() -> Result<()> {
     let root_path: PathBuf = env::current_dir().with_context(|| "failed to get current dir")?;
     let git_path: PathBuf = root_path.join(GIT_DIR);
-    let refs_path: PathBuf = git_path.join("objects");
+    let objs_path: PathBuf = git_path.join("objects");
 
     let workspace: Workspace = Workspace::new(root_path);
-    let db: Database = Database::new(refs_path);
+    let db: Database = Database::new(objs_path);
+    let refs: Refs = Refs::new(git_path);
 
     let mut entries: Vec<Entry> = vec![];
 
@@ -75,23 +78,23 @@ fn commit() -> Result<()> {
     let name = env::var("GIT_AUTHOR_NAME").unwrap_or_default();
     let email = env::var("GIT_AUTHOR_EMAIL").unwrap_or_default();
     let author = Author::new(name, email);
+    let parent = refs.read_head()?;
 
-    println!("Enter commit message");
     let reader = BufReader::new(stdin());
-    let message: Vec<String> = reader.lines().map(|line| line.unwrap()).collect();
+    let mut message: Vec<String> = reader.lines().map(|line| line.unwrap()).collect();
+    message.push("\n".to_string());
 
-    let mut commit = Commit::new((tree.oid(), author, message.join("\n")));
+    let mut commit = Commit::new((&parent, tree.oid(), author, message.join("\n")));
     db.store(&mut commit)?;
+    refs.update_head(commit.oid())?;
 
     // Write HEAD
-
-    let mut head: fs::File = fs::OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(git_path.join("HEAD"))?;
-    head.write(commit.oid().as_bytes())?;
-
-    println!("[(root-commit) {}] {}", commit.oid(), message[0]);
+    let root_msg = if parent.is_empty() {
+        "(root-commit) "
+    } else {
+        ""
+    };
+    println!("[{}{}] {}", root_msg, commit.oid(), message[0]);
 
     return Ok(());
 }

@@ -7,6 +7,7 @@ rust_binary(
         "src/main.rs",
         "src/object.rs",
         "src/object/author.rs",
+        "src/refs.rs",
         "src/workspace.rs",
     ],
     deps = [
