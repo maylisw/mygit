@@ -1,0 +1,31 @@
+load("@rules_rust//rust:defs.bzl", "rust_binary")
+
+rust_binary(
+    name = "mygit",
+    srcs = [
+        "src/database.rs",
+        "src/main.rs",
+        "src/object.rs",
+        "src/object/author.rs",
+        "src/workspace.rs",
+    ],
+    deps = [
+        "@crates//:anyhow",
+        "@crates//:chrono",
+        "@crates//:hex",
+        "@crates//:miniz_oxide",
+        "@crates//:rand",
+        "@crates//:sha1",
+    ],
+)
+
+rust_binary(
+    name = "inflate-util",
+    srcs = [
+        "src/inflate.rs",
+    ],
+    deps = [
+        "@crates//:anyhow",
+        "@crates//:miniz_oxide",
+    ],
+)

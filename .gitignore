@@ -1,0 +1,7 @@
+target
+bazel-bin
+bazel-my-git
+bazel-out
+bazel-testlogs
+MODULE.bazel.lock
+.mygit

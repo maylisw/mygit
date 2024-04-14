@@ -1,0 +1,48 @@
+"""MODULE.bazel"""
+module(name = "my-git", version = "0.1.0")
+
+bazel_dep(name = "rules_rust", version = "0.38.0")
+
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(edition = "2021")
+use_repo(rust, "rust_toolchains")
+
+register_toolchains("@rust_toolchains//:all")
+
+crate = use_extension("@rules_rust//crate_universe:extension.bzl", "crate")
+crate.from_cargo(
+    name = "crates",
+    cargo_lockfile = "//:Cargo.lock",
+    manifests = ["//:Cargo.toml"],
+)
+use_repo(crate, "crates")
+
+crate.annotation(
+    crate = "anyhow",
+    data = ["//:Cargo.toml"],
+)
+
+crate.annotation(
+    crate = "chrono",
+    data = ["//:Cargo.toml"],
+)
+
+crate.annotation(
+    crate = "hex",
+    data = ["//:Cargo.toml"],
+)
+
+crate.annotation(
+    crate = "miniz_oxide",
+    data = ["//:Cargo.toml"],
+)
+
+crate.annotation(
+    crate = "rand",
+    data = ["//:Cargo.toml"],
+)
+
+crate.annotation(
+    crate = "sha1",
+    data = ["//:Cargo.toml"],
+)
