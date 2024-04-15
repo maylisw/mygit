@@ -1,4 +1,5 @@
 mod database;
+pub mod lockfile;
 pub mod object;
 mod refs;
 mod workspace;
@@ -78,13 +79,14 @@ fn commit() -> Result<()> {
     let name = env::var("GIT_AUTHOR_NAME").unwrap_or_default();
     let email = env::var("GIT_AUTHOR_EMAIL").unwrap_or_default();
     let author = Author::new(name, email);
-    let parent = refs.read_head()?;
+    let cur_head = refs.read_head()?;
+    let parent = cur_head.trim();
 
     let reader = BufReader::new(stdin());
     let mut message: Vec<String> = reader.lines().map(|line| line.unwrap()).collect();
     message.push("\n".to_string());
 
-    let mut commit = Commit::new((&parent, tree.oid(), author, message.join("\n")));
+    let mut commit = Commit::new((parent, tree.oid(), author, message.join("\n")));
     db.store(&mut commit)?;
     refs.update_head(commit.oid())?;
 

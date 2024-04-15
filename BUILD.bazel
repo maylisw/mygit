@@ -4,6 +4,7 @@ rust_binary(
     name = "mygit",
     srcs = [
         "src/database.rs",
+        "src/lockfile.rs",
         "src/main.rs",
         "src/object.rs",
         "src/object/author.rs",
