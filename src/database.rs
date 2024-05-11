@@ -34,8 +34,11 @@ impl Database {
 
     pub fn write_object(&self, oid: &String, data: &Vec<u8>) -> Result<()> {
         let object_path: PathBuf = self.pathname.join(Path::new(&oid[0..2]).join(&oid[2..40]));
-        let dirname: &Path = object_path.parent().unwrap();
+        if object_path.exists() {
+            return Ok(());
+        }
 
+        let dirname: &Path = object_path.parent().unwrap();
         fs::create_dir_all(dirname).with_context(|| "failed to create dir")?;
 
         let temp_path: PathBuf = dirname.join(generate_temp_name());
