@@ -52,6 +52,10 @@ impl Workspace {
         }
         return Ok(files);
     }
+
+	pub fn stat_file(path: &PathBuf) -> Result<fs::Metadata> {
+		Ok(fs::metadata(path)?)
+	}
 }
 
 fn read_gitignore(gitignore: &PathBuf) -> Result<Vec<PathBuf>> {

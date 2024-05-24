@@ -16,8 +16,7 @@ use std::{
     path::PathBuf,
 };
 
-// allows for testing w/o clobbering git history
-const GIT_DIR: &str = ".mygit";
+const GIT_DIR: &str = ".git";
 
 fn main() -> Result<()> {
     if env::args().len() < 2 {
@@ -64,10 +63,11 @@ fn commit() -> Result<()> {
         let mut blob: Blob = Blob::new(byte_content);
         db.store(&mut blob)?;
 
+        let stat = Workspace::stat_file(&path)?;
         entries.push(Entry {
             oid: blob.oid().to_owned(),
             path: path,
-            mode: String::from("100644"),
+            stat: stat,
         });
     }
 

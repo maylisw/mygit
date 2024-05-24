@@ -2,7 +2,7 @@ pub mod author;
 
 pub use author::Author;
 use hex;
-use std::{fmt, path::PathBuf};
+use std::{fmt, fs, os::unix::fs::PermissionsExt, path::PathBuf};
 
 pub enum Datatype {
     Blob,
@@ -67,7 +67,18 @@ impl Object for Blob {
 pub struct Entry {
     pub path: PathBuf,
     pub oid: String,
-    pub mode: String,
+    pub stat: fs::Metadata,
+}
+impl Entry {
+    const EXECUTABLE_MODE: &str = "10755";
+    const REGULAR_MODE: &str = "10755";
+
+    pub fn mode(&self) -> &str {
+        if self.stat.permissions().mode() & 0o00100 != 0 {
+            return Self::EXECUTABLE_MODE;
+        }
+        return Self::REGULAR_MODE;
+    }
 }
 
 pub struct Tree {
@@ -95,7 +106,7 @@ impl Object for Tree {
         for e in &self.entries {
             let hex_oid = hex::decode(&e.oid).unwrap();
             content.extend(
-                format!("{} {}\0", e.mode, e.path.to_str().unwrap())
+                format!("{} {}\0", e.mode(), e.path.to_str().unwrap())
                     .as_bytes()
                     .to_vec(),
             );
